@@ -65,5 +65,9 @@ public class GameBoard {
         }
         return true; // All ships are sunk
     }
+
+    public int[][] getBoard() {
+        return board;
+    }
 }
 
