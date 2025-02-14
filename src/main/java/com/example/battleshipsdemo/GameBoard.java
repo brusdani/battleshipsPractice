@@ -1,11 +1,16 @@
 package com.example.battleshipsdemo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GameBoard {
     private static final int BOARD_SIZE = 10;
     private int[][] board; // A 2D array to represent the board
+    private List<ShipPlacement> placedShips;  // List to track placed ships
 
     public GameBoard() {
         board = new int[BOARD_SIZE][BOARD_SIZE]; // Initialize the 10x10 grid
+        placedShips = new ArrayList<>();  // Initialize the list for placed ships
     }
 
     // Place a ship on the board
@@ -19,6 +24,7 @@ public class GameBoard {
                     board[row + i][col] = 1; // Mark ship position
                 }
             }
+            placedShips.add(new ShipPlacement(ship, row, col, isHorizontal));
             return true; // Ship placed successfully
         }
         return false; // Invalid placement
@@ -42,6 +48,20 @@ public class GameBoard {
             }
         }
         return true;
+    }
+
+
+    // Reset the entire board (clear all ships and placed ships)
+    public void resetBoard() {
+        // Clear the board grid
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            for (int col = 0; col < BOARD_SIZE; col++) {
+                board[row][col] = 0; // Reset the grid to have no ships
+            }
+        }
+
+        // Clear the list of placed ships
+        placedShips.clear(); // Remove all ship placements
     }
 
     // Handle an attack on the board

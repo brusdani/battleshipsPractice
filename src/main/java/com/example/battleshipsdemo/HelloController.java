@@ -36,9 +36,7 @@ public class HelloController {
     @FXML
     private ListView<Battleship> shipView;
 
-    private ObservableList<String> ships = FXCollections.observableArrayList(
-            "Carrier", "Battleship", "Cruiser", "Submarine", "Destroyer"
-    );  // ObservableList to hold the ships
+    private ObservableList<Battleship> ships = FXCollections.observableArrayList();
 
     private ObservableList<Battleship> battleships;
 
@@ -115,8 +113,8 @@ public class HelloController {
     @FXML
     private void initialize(){
 
-        // Add Battleship objects to the ObservableList
-        ObservableList<Battleship> ships = FXCollections.observableArrayList(
+        // Initialize the ObservableList with Battleships
+        ships.addAll(
                 new Battleship(5, "Carrier"),
                 new Battleship(4, "Battleship"),
                 new Battleship(3, "Cruiser"),
@@ -126,26 +124,12 @@ public class HelloController {
 
         shipView.setItems(ships);
 
-        shipView.setCellFactory(param -> new ListCell<Battleship>() {
-            @Override
-            protected void updateItem(Battleship ship, boolean empty) {
-                super.updateItem(ship, empty);
-                if (empty || ship == null) {
-                    setText(null);
-                } else {
-                    setText(ship.getName());  // Display the ship's name in the ListView
-                }
-            }
+        shipView.setCellFactory(param -> new ListCellBattleship() {
+
         });
 
         // Add listener to ListView to detect item selection
-        shipView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                handleShipSelection(newValue);  // Call handleShipSelection with the selected Battleship object
-            }
-        });
-
-
+        addSelectionListenerToShipView();
 
         //playerShips = new Battleship[] {
                 //new Battleship(5, "Aircraft Carrier"),
@@ -155,6 +139,14 @@ public class HelloController {
         //placeShipsOnBoard(playerBoard,playerShips);
 
         drawBoard();
+    }
+    // Method to add the selection listener to the ListView
+    private void addSelectionListenerToShipView() {
+        shipView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                handleShipSelection(newValue);  // Call handleShipSelection with the selected Battleship object
+            }
+        });
     }
 
     // Called when a ship is selected from the ListView
@@ -182,21 +174,18 @@ public class HelloController {
         if (isHorizontal) {
             for (int i = 0; i < shipSize; i++) {
                 Button cellButton = (Button) playerGrid.getChildren().get(row * 10 + (col + i));
-                cellButton.setStyle("-fx-background-color: lightblue;");  // Change color to show the ship
+                removeShipFromList(ship);
+                cellButton.setStyle("-fx-background-color: lightblue;");
+                // Change color to show the ship
             }
         } else {
             for (int i = 0; i < shipSize; i++) {
                 Button cellButton = (Button) playerGrid.getChildren().get((row + i) * 10 + col);
+                removeShipFromList(ship);
                 cellButton.setStyle("-fx-background-color: lightblue;");  // Change color to show the ship
             }
         }
     }
-
-
-
-
-
-
 
     // Handle a player's attack on the opponent
     public void handleAttack(int row, int col, Button clickedButton) {
@@ -228,6 +217,35 @@ public class HelloController {
         isHorizontal = false;
         System.out.println("Orientation: Vertical");
     }
+    @FXML
+    private void resetPlacement() {
+        // Print the board status (optional for debugging)
+        System.out.println("The board has been reset.");
+        // Step 1: Clear the board by resetting the GameBoard instance
+        playerBoard.resetBoard();
+
+        // Step 2: Clear the ObservableList to reset the ships in ListView
+        ships.clear();  // Remove all ships from the list
+
+        // Step 3: Refill the ListView with initial ships
+        ships.addAll(
+                new Battleship(5, "Carrier"),
+                new Battleship(4, "Battleship"),
+                new Battleship(3, "Cruiser"),
+                new Battleship(3, "Submarine"),
+                new Battleship(2, "Destroyer")
+        );
+
+        // Step 4: Manually refresh the ListView to show updated ships
+        shipView.refresh();
+
+        drawBoard();
+
+        // Optionally: Clear any selections in the ListView
+        shipView.getSelectionModel().clearSelection();
+
+
+    }
 
     public boolean isHorizontal() {
         return isHorizontal;
@@ -237,22 +255,12 @@ public class HelloController {
     // Remove the selected ship from the ObservableList
     private void removeShipFromList(Battleship ship) {
         ships.remove(ship);  // Remove the selected ship from the list
-        System.out.println(ship + " has been placed!");
+        System.out.println(ship + " has been removed!");
+        // Clear the selection
+        shipView.getSelectionModel().clearSelection();
+        printObservableListContents();
     }
-    private void placeShipHorizontally(int row, int col, int shipSize) {
-        for (int i = 0; i < shipSize; i++) {
-            Button cellButton = (Button) playerGrid.getChildren().get((row * 10) + (col + i));
-            cellButton.setStyle("-fx-background-color: lightblue;");  // Ship placement visual feedback
-            // You can also store the ship's position in a list/array for reference
-        }
-    }
-    private void placeShipVertically(int row, int col, int shipSize) {
-        for (int i = 0; i < shipSize; i++) {
-            Button cellButton = (Button) playerGrid.getChildren().get(((row + i) * 10) + col);
-            cellButton.setStyle("-fx-background-color: lightblue;");  // Ship placement visual feedback
-            // Store the ship's position for reference if needed
-        }
-    }
+
     private void drawBoard() {
         int[][] board = playerBoard.getBoard();
         int index = 0;
@@ -274,5 +282,13 @@ public class HelloController {
             }
         }
     }
+
+    private void printObservableListContents() {
+        for (Battleship ship : ships) {
+            System.out.println(ship.getName());
+        }
+    }
+
+
 
 }
