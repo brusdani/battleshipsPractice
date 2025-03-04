@@ -1,9 +1,10 @@
 package com.example.battleshipsdemo;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ShipPlacement {
+public class ShipPlacement implements Serializable {
     private Battleship ship;
     private List<int[]> occupiedCoordinates;  // List to store all coordinates occupied by the ship
 

@@ -1,9 +1,10 @@
 package com.example.battleshipsdemo;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GameBoard {
+public class GameBoard implements Serializable {
     private static final int BOARD_SIZE = 10;
     private int[][] board; // A 2D array to represent the board
     private List<ShipPlacement> placedShips;  // List to track placed ships

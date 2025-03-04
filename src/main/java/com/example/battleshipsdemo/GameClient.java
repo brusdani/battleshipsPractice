@@ -1,71 +1,111 @@
 package com.example.battleshipsdemo;
 
-
-import javafx.application.Platform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.Socket;
+import java.net.*;
 
 public class GameClient {
-    private static final String SERVER_ADDRESS = "localhost"; // Server address
-    private static final int SERVER_PORT = 12345;  // Server port
+
+    private static final Logger log = LoggerFactory.getLogger(GameClient.class);
 
     private Socket socket;
-    private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
-    private GameBoard currentGameBoard;
+    private ObjectInputStream inputStream;
+    private boolean isConnected = false;  // Flag to track connection status
 
-    private HelloController controller; // Reference to your controller
-
-    public GameClient(HelloController controller) {
-        this.controller = controller;
+    public GameClient() {
+        // Constructor: can initialize other necessary fields if needed
     }
 
-    // Connects to the server
+    // Connect to the server
     public void connectToServer() {
         try {
-            socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
-            inputStream = new ObjectInputStream(socket.getInputStream());
+            log.info("Attempting to connect to server...");
+
+            // Set a connection timeout (e.g., 10 seconds)
+            socket = new Socket("127.0.0.1", 8080);  // Connect to the server
             outputStream = new ObjectOutputStream(socket.getOutputStream());
-            System.out.println("Connected to server.");
+            inputStream = new ObjectInputStream(socket.getInputStream());
+
+            log.info("Connected to server");
+
+            // After connecting and initializing streams, set isConnected to true
+            isConnected = true;
+            log.info("Connection established, streams are ready.");
+
+            // Send a GameBoard (or other game data) to the server after the connection is fully established
+            //GameBoard gameBoard = new GameBoard();
+            //sendGameBoard(gameBoard);  // Send GameBoard to server
+
+            // Now you can start listening for updates or continue with other communication
+            //listenForUpdates();
 
         } catch (IOException e) {
             e.printStackTrace();
+            log.error("Error occurred while connecting to the server", e);
         }
     }
 
-    // Listens for updates from the server
 
-    // Sends the current game board to the server
-    public void sendGameBoard(GameBoard gameBoard) {
-        try {
-            outputStream.writeObject(gameBoard);  // Send the game board to the server
-            System.out.println("Sent game board to server.");
-        } catch (IOException e) {
-            e.printStackTrace();
+
+
+    // Method to send data to the server (used for other data exchange)
+    public void sendData(Object data) {
+        if (isConnected && outputStream != null) {
+            try {
+                log.info("Sending data to server: {}", data);
+                outputStream.writeObject(data);  // Send the object (e.g., encoded game board)
+                outputStream.flush();            // Ensure data is sent immediately
+                log.info("Data sent to server.");
+            } catch (IOException e) {
+                e.printStackTrace();
+                log.error("Failed to send data to server.", e);
+            }
+        } else {
+            log.error("Cannot send, connection is not established yet.");
         }
     }
 
-    // Sends a player's attack to the server
-    public void sendAttack(int row, int col) {
-        try {
-            String attackData = row + "," + col;  // Format the attack data as a string
-            outputStream.writeObject(attackData);  // Send the attack data to the server
-            System.out.println("Sent attack: " + attackData);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Closes the connection
+    // Close the connection when done
     public void closeConnection() {
         try {
-            inputStream.close();
-            outputStream.close();
-            socket.close();
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+                log.info("Connection closed.");
+            }
         } catch (IOException e) {
             e.printStackTrace();
+            log.error("Error closing the connection.", e);
         }
     }
-}
 
+    // Check if the client is connected
+    public boolean isConnected() {
+        return isConnected;
+    }
+    // Method to send a GameBoard object to the server
+    public void sendGameBoard(GameBoard gameBoard) {
+        if (isConnected && outputStream != null) {
+            try {
+                // Log the GameBoard being sent
+                log.info("Sending GameBoard to server: {}", gameBoard);
+
+                // Write the GameBoard object to the output stream
+                outputStream.writeObject(gameBoard);
+
+                // Flush the stream to ensure the data is sent immediately
+                outputStream.flush();
+
+                log.info("GameBoard sent to server.");
+            } catch (IOException e) {
+                e.printStackTrace();
+                log.error("Failed to send GameBoard to server.", e);
+            }
+        } else {
+            log.error("Cannot send GameBoard, connection is not established yet.");
+        }
+    }
+
+}

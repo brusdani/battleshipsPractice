@@ -13,7 +13,7 @@ public class HelloController {
     private Label welcomeText;
 
     @FXML
-    private Label statusLabel;
+    protected Label statusLabel;
 
     @FXML
     private RadioButton horizontalButton;  // RadioButton for Horizontal orientation
@@ -42,6 +42,8 @@ public class HelloController {
     private ObservableList<Battleship> ships = FXCollections.observableArrayList();
 
     private ObservableList<Battleship> battleships;
+
+    private GameClient gameClient;
 
     private String selectedShip;  // Selected ship to be placed
 
@@ -79,29 +81,28 @@ public class HelloController {
     }
 
     @FXML
-    private void initialize(){
+    private void initialize() {
+        // Set gameClient to the instance from HelloApplication
+
 
         // Initialize the ObservableList with Battleships
-        ships.addAll(
-                new Battleship(5, "Carrier"),
-                new Battleship(4, "Battleship"),
-                new Battleship(3, "Cruiser"),
-                new Battleship(3, "Submarine"),
-                new Battleship(2, "Destroyer")
-        );
-
-        shipView.setItems(ships);
-
-        shipView.setCellFactory(param -> new ListCellBattleship() {
-
+        Platform.runLater(() -> {
+            ships.addAll(
+                    new Battleship(5, "Carrier"),
+                    new Battleship(4, "Battleship"),
+                    new Battleship(3, "Cruiser"),
+                    new Battleship(3, "Submarine"),
+                    new Battleship(2, "Destroyer")
+            );
+            shipView.setItems(ships);
+            shipView.setCellFactory(param -> new ListCellBattleship());
+            addSelectionListenerToShipView();
+            drawBoard();
+            currentPhase = GamePhase.PREPARATION;
+            setPhase(currentPhase);
+            gameClient = HelloApplication.gameClient;
+            System.out.println(gameClient!=null);
         });
-
-        // Add listener to ListView to detect item selection
-        addSelectionListenerToShipView();
-
-        drawBoard();
-        currentPhase = GamePhase.PREPARATION;
-        setPhase(currentPhase);
     }
     @FXML
     private void handlePlacementClick(ActionEvent event){
@@ -149,16 +150,19 @@ public class HelloController {
     // Method to switch to the Battle phase
     @FXML
     private void startBattlePhase() {
-        if(ships.isEmpty()) {
+        if (ships.isEmpty()) {
             currentPhase = GamePhase.BATTLE;
             player1Board = playerBoard;
+
+            gameClient.sendGameBoard(playerBoard);
             String encodedGameBoard = Protocol.encodeGameBoard(playerBoard);
-            System.out.println("Encoded GameBoard (sending to server):\n" + encodedGameBoard);
+            //System.out.println("Encoded GameBoard (sending to server):\n" + encodedGameBoard);
+
             setPhase(currentPhase); // Update the UI based on the new phase
-        } else {
+            }
+         else {
             System.out.println("Place all ships before starting the game");
         }
-
     }
 
     @FXML

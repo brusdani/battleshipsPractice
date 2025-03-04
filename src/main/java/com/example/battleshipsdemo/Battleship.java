@@ -1,6 +1,8 @@
 package com.example.battleshipsdemo;
 
-public class Battleship {
+import java.io.Serializable;
+
+public class Battleship implements Serializable {
     private int size;
     private String name;
     private boolean isSunk;

@@ -11,6 +11,7 @@ import java.io.IOException;
 
 public class HelloApplication extends Application {
     private static final Logger logger = LoggerFactory.getLogger(HelloApplication.class);
+    public static GameClient gameClient;
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("BattleShipScene.fxml"));
@@ -19,6 +20,10 @@ public class HelloApplication extends Application {
         stage.setScene(scene);
         stage.show();
         logger.info("Starting the JavaFX application.");
+        gameClient = new GameClient();
+        new Thread(() -> {
+            gameClient.connectToServer();  // Start the connection to the server
+        }).start();
     }
 
     public static void main(String[] args) {
