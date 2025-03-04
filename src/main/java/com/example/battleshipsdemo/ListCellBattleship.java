@@ -10,7 +10,7 @@ public class ListCellBattleship extends ListCell<Battleship> {
         if (empty || ship == null) {
             setText(null);  // If the item is empty or null, set the text to null
         } else {
-            setText(ship.getName());  // Display the name of the ship
+            setText(ship.getName() + "(" + ship.getSize() + ")");  // Display the name of the ship
         }
     }
 }

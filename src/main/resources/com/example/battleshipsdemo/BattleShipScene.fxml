@@ -32,10 +32,22 @@
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="675.0" prefWidth="1342.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.battleshipsdemo.HelloController">
+<VBox prefHeight="675.0" prefWidth="1342.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.battleshipsdemo.HelloController">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -80,7 +92,7 @@
       <children>
             <GridPane fx:id="enemyGrid" gridLinesVisible="true" layoutX="20.0" layoutY="152.0">
               <columnConstraints>
-                  <ColumnConstraints hgrow="SOMETIMES" minWidth="50.0" prefWidth="50.0" />
+                  <ColumnConstraints fx:id="attackBoard" hgrow="SOMETIMES" minWidth="50.0" prefWidth="50.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="50.0" prefWidth="50.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="50.0" prefWidth="50.0" />
                   <ColumnConstraints hgrow="SOMETIMES" minWidth="50.0" prefWidth="50.0" />
@@ -303,36 +315,36 @@
                   <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="G8" GridPane.columnIndex="7" GridPane.rowIndex="6" />
                   <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="G9" GridPane.columnIndex="8" GridPane.rowIndex="6" />
                   <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="G10" GridPane.columnIndex="9" GridPane.rowIndex="6" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="H1" GridPane.rowIndex="7" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="H2" GridPane.columnIndex="1" GridPane.rowIndex="7" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="H3" GridPane.columnIndex="2" GridPane.rowIndex="7" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="H4" GridPane.columnIndex="3" GridPane.rowIndex="7" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="H5" GridPane.columnIndex="4" GridPane.rowIndex="7" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="H6" GridPane.columnIndex="5" GridPane.rowIndex="7" />
-                  <Button layoutX="10.0" layoutY="264.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="H7" GridPane.columnIndex="6" GridPane.rowIndex="7" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="H8" GridPane.columnIndex="7" GridPane.rowIndex="7" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="H9" GridPane.columnIndex="8" GridPane.rowIndex="7" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="H10" GridPane.columnIndex="9" GridPane.rowIndex="7" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="I1" GridPane.rowIndex="8" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="I2" GridPane.columnIndex="1" GridPane.rowIndex="8" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="I3" GridPane.columnIndex="2" GridPane.rowIndex="8" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="I4" GridPane.columnIndex="3" GridPane.rowIndex="8" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="I5" GridPane.columnIndex="4" GridPane.rowIndex="8" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="I6" GridPane.columnIndex="5" GridPane.rowIndex="8" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="I7" GridPane.columnIndex="6" GridPane.rowIndex="8" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="I8" GridPane.columnIndex="7" GridPane.rowIndex="8" />
-                  <Button layoutX="10.0" layoutY="365.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="I9" GridPane.columnIndex="8" GridPane.rowIndex="8" />
-                  <Button layoutX="10.0" layoutY="416.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="I10" GridPane.columnIndex="9" GridPane.rowIndex="8" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="J1" GridPane.rowIndex="9" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="J2" GridPane.columnIndex="1" GridPane.rowIndex="9" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="J3" GridPane.columnIndex="2" GridPane.rowIndex="9" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="J4" GridPane.columnIndex="3" GridPane.rowIndex="9" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="J5" GridPane.columnIndex="4" GridPane.rowIndex="9" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="J6" GridPane.columnIndex="5" GridPane.rowIndex="9" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="J7" GridPane.columnIndex="6" GridPane.rowIndex="9" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="J8" GridPane.columnIndex="7" GridPane.rowIndex="9" />
-                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="J9" GridPane.columnIndex="8" GridPane.rowIndex="9" />
-                  <Button layoutX="10.0" layoutY="466.0" mnemonicParsing="false" prefHeight="45.0" prefWidth="50.0" text="J10" GridPane.columnIndex="9" GridPane.rowIndex="9" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="H1" GridPane.rowIndex="7" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="H2" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="H3" GridPane.columnIndex="2" GridPane.rowIndex="7" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="H4" GridPane.columnIndex="3" GridPane.rowIndex="7" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="H5" GridPane.columnIndex="4" GridPane.rowIndex="7" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="H6" GridPane.columnIndex="5" GridPane.rowIndex="7" />
+                  <Button layoutX="10.0" layoutY="264.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="H7" GridPane.columnIndex="6" GridPane.rowIndex="7" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="H8" GridPane.columnIndex="7" GridPane.rowIndex="7" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="H9" GridPane.columnIndex="8" GridPane.rowIndex="7" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="H10" GridPane.columnIndex="9" GridPane.rowIndex="7" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="I1" GridPane.rowIndex="8" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="I2" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="I3" GridPane.columnIndex="2" GridPane.rowIndex="8" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="I4" GridPane.columnIndex="3" GridPane.rowIndex="8" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="I5" GridPane.columnIndex="4" GridPane.rowIndex="8" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="I6" GridPane.columnIndex="5" GridPane.rowIndex="8" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="I7" GridPane.columnIndex="6" GridPane.rowIndex="8" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="I8" GridPane.columnIndex="7" GridPane.rowIndex="8" />
+                  <Button layoutX="10.0" layoutY="365.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="I9" GridPane.columnIndex="8" GridPane.rowIndex="8" />
+                  <Button layoutX="10.0" layoutY="416.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="I10" GridPane.columnIndex="9" GridPane.rowIndex="8" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="J1" GridPane.rowIndex="9" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="J2" GridPane.columnIndex="1" GridPane.rowIndex="9" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="J3" GridPane.columnIndex="2" GridPane.rowIndex="9" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="J4" GridPane.columnIndex="3" GridPane.rowIndex="9" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="J5" GridPane.columnIndex="4" GridPane.rowIndex="9" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="J6" GridPane.columnIndex="5" GridPane.rowIndex="9" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="J7" GridPane.columnIndex="6" GridPane.rowIndex="9" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="J8" GridPane.columnIndex="7" GridPane.rowIndex="9" />
+                  <Button layoutX="10.0" layoutY="12.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="J9" GridPane.columnIndex="8" GridPane.rowIndex="9" />
+                  <Button layoutX="10.0" layoutY="466.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="J10" GridPane.columnIndex="9" GridPane.rowIndex="9" />
                </children>
             </GridPane>
             <Label layoutX="180.0" layoutY="58.0" text="Attack!" />
@@ -347,8 +359,8 @@
                   </RadioButton>
                   <RadioButton fx:id="verticalButton" layoutX="8.0" layoutY="473.0" mnemonicParsing="false" onAction="#setVertical" prefHeight="34.0" prefWidth="214.0" text="Vertical" toggleGroup="$toggleGroup" />
                   <Button layoutX="20.0" layoutY="518.0" mnemonicParsing="false" onAction="#resetPlacement" prefHeight="34.0" prefWidth="208.0" text="Reset" />
-                  <Button layoutX="20.0" layoutY="565.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="208.0" text="Start" />
-                  <Button layoutX="20.0" layoutY="612.0" mnemonicParsing="false" prefHeight="34.0" prefWidth="208.0" text="Exit" />
+                  <Button layoutX="20.0" layoutY="565.0" mnemonicParsing="false" onAction="#startBattlePhase" prefHeight="34.0" prefWidth="208.0" text="Start" />
+                  <Button layoutX="20.0" layoutY="612.0" mnemonicParsing="false" onAction="#exitGame" prefHeight="34.0" prefWidth="208.0" text="Exit" />
                </children>
             </AnchorPane>
       </children>

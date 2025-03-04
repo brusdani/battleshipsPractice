@@ -31,24 +31,42 @@ public class GameBoard {
     }
 
     // Check if a ship can be placed in the specified position
-    private boolean isPlacementValid(Battleship ship, int row, int col, boolean isHorizontal) {
+    public boolean isPlacementValid(Battleship ship, int row, int col, boolean isHorizontal) {
+        // First, check if the ship fits within the grid horizontally or vertically
         if (isHorizontal) {
-            // Ensure the ship fits within the grid horizontally
-            if (col + ship.getSize() > BOARD_SIZE) return false;
-            // Ensure the ship does not overlap another ship
-            for (int i = 0; i < ship.getSize(); i++) {
-                if (board[row][col + i] == 1) return false;
-            }
+            if (col + ship.getSize() > BOARD_SIZE) return false; // Ship doesn't fit horizontally
         } else {
-            // Ensure the ship fits within the grid vertically
-            if (row + ship.getSize() > BOARD_SIZE) return false;
-            // Ensure the ship does not overlap another ship
-            for (int i = 0; i < ship.getSize(); i++) {
-                if (board[row + i][col] == 1) return false;
+            if (row + ship.getSize() > BOARD_SIZE) return false; // Ship doesn't fit vertically
+        }
+
+        // Check for overlap with already placed ships in placedShips
+        for (ShipPlacement placedShip : placedShips) {
+            List<int[]> occupiedCoordinates = placedShip.getOccupiedCoordinates();
+
+            // Check if the new ship's coordinates overlap with any occupied coordinate
+            for (int[] occupiedCoord : occupiedCoordinates) {
+                // Horizontal placement check
+                if (isHorizontal) {
+                    for (int i = 0; i < ship.getSize(); i++) {
+                        if (occupiedCoord[0] == row && occupiedCoord[1] == col + i) {
+                            return false; // Overlap with another ship
+                        }
+                    }
+                } else {
+                    // Vertical placement check
+                    for (int i = 0; i < ship.getSize(); i++) {
+                        if (occupiedCoord[0] == row + i && occupiedCoord[1] == col) {
+                            return false; // Overlap with another ship
+                        }
+                    }
+                }
             }
         }
-        return true;
+
+        return true; // No overlap, valid placement
     }
+
+
 
 
     // Reset the entire board (clear all ships and placed ships)
@@ -88,6 +106,10 @@ public class GameBoard {
 
     public int[][] getBoard() {
         return board;
+    }
+
+    public List<ShipPlacement> getPlacedShips() {
+        return placedShips;
     }
 }
 

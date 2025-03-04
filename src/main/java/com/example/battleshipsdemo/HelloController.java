@@ -1,5 +1,6 @@
 package com.example.battleshipsdemo;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -32,6 +33,8 @@ public class HelloController {
 
     @FXML
     private GridPane playerGrid;
+
+    private GamePhase currentPhase;
 
     @FXML
     private ListView<Battleship> shipView;
@@ -76,41 +79,6 @@ public class HelloController {
     }
 
     @FXML
-    private void handlePlacementClick(ActionEvent event){
-        System.out.println("Cell clicked!");
-        Button clickedButton = (Button) event.getSource();
-
-        // Get the row and column of the clicked button based on its position in the GridPane
-        Integer row = GridPane.getRowIndex(clickedButton);
-        Integer col = GridPane.getColumnIndex(clickedButton);
-
-        // If row or col are null, set them to a default value of 0
-        if (row == null) {
-            row = 0;
-        }
-        if (col == null) {
-            col = 0;
-        }
-        // Get the selected ship from the ListView (assume it's already set from ship selection)
-        Battleship selectedBattleship = shipView.getSelectionModel().getSelectedItem();
-        if (selectedBattleship == null) {
-            statusLabel.setText("No ship selected!");
-            return;
-        }
-        // Check if the ship can be placed at the selected position
-        boolean canPlace = true;
-
-        // If placement is valid, place the ship on the grid and update the UI
-        if (canPlace) {
-            placeShip(row, col, selectedBattleship);  // This already updates the grid visually
-            statusLabel.setText("Ship placed: " + selectedBattleship.getName());
-        } else {
-            statusLabel.setText("Invalid placement!");
-        }
-    }
-
-
-    @FXML
     private void initialize(){
 
         // Initialize the ObservableList with Battleships
@@ -131,14 +99,44 @@ public class HelloController {
         // Add listener to ListView to detect item selection
         addSelectionListenerToShipView();
 
-        //playerShips = new Battleship[] {
-                //new Battleship(5, "Aircraft Carrier"),
-                //new Battleship(4, "Battleship"),
-                //new Battleship(3, "Submarine")
-        //};
-        //placeShipsOnBoard(playerBoard,playerShips);
-
         drawBoard();
+        currentPhase = GamePhase.PREPARATION;
+        setPhase(currentPhase);
+    }
+    @FXML
+    private void handlePlacementClick(ActionEvent event){
+        System.out.println("Cell clicked!");
+        Button clickedButton = (Button) event.getSource();
+
+        // Get the row and column of the clicked button based on its position in the GridPane
+        Integer row = GridPane.getRowIndex(clickedButton);
+        Integer col = GridPane.getColumnIndex(clickedButton);
+
+        // If row or col are null, set them to a default value of 0
+        if (row == null) {
+            row = 0;
+        }
+        if (col == null) {
+            col = 0;
+        }
+
+        // Get the selected ship from the ListView (assume it's already set from ship selection)
+        Battleship selectedBattleship = shipView.getSelectionModel().getSelectedItem();
+        if (selectedBattleship == null) {
+            statusLabel.setText("No ship selected!");
+            return;
+        }
+        // Check if the ship can be placed at the selected position
+        boolean canPlace = playerBoard.isPlacementValid(selectedBattleship, row, col, isHorizontal);
+
+        // If placement is valid, place the ship on the grid and update the UI
+        if (canPlace) {
+            playerBoard.placeShip(selectedBattleship, row, col, isHorizontal);
+            placeShip(row, col, selectedBattleship);  // This already updates the grid visually
+            statusLabel.setText("Ship placed: " + selectedBattleship.getName());
+        } else {
+            statusLabel.setText("Invalid placement!");
+        }
     }
     // Method to add the selection listener to the ListView
     private void addSelectionListenerToShipView() {
@@ -147,6 +145,53 @@ public class HelloController {
                 handleShipSelection(newValue);  // Call handleShipSelection with the selected Battleship object
             }
         });
+    }
+    // Method to switch to the Battle phase
+    @FXML
+    private void startBattlePhase() {
+        if(ships.isEmpty()) {
+            currentPhase = GamePhase.BATTLE;
+            player1Board = playerBoard;
+            String encodedGameBoard = Protocol.encodeGameBoard(playerBoard);
+            System.out.println("Encoded GameBoard (sending to server):\n" + encodedGameBoard);
+            setPhase(currentPhase); // Update the UI based on the new phase
+        } else {
+            System.out.println("Place all ships before starting the game");
+        }
+
+    }
+
+    @FXML
+    private void exitGame() {
+        // Show a confirmation dialog
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Exit Game");
+        alert.setHeaderText("Are you sure you want to exit?");
+        alert.setContentText("Your progress will be lost.");
+
+        if (alert.showAndWait().get() == ButtonType.OK) {
+            // If the player confirms, exit the game
+            Platform.exit();  // or use System.exit(0);
+        }
+    }
+
+    // Method to switch back to the Preparation phase
+    @FXML
+    private void startPreparationPhase() {
+        currentPhase = GamePhase.PREPARATION;
+        setPhase(currentPhase); // Update the UI based on the new phase
+    }
+    // Method to update the UI based on the current phase
+    private void setPhase(GamePhase phase) {
+        if (phase == GamePhase.PREPARATION) {
+            // During the PREPARATION phase, disable the attack grid and enable the placement grid
+            enemyGrid.setDisable(true);  // Disable enemy grid for attacks
+            playerGrid.setDisable(false); // Enable player grid for ship placement
+        } else if (phase == GamePhase.BATTLE) {
+            // During the BATTLE phase, enable the attack grid and disable the placement grid
+            enemyGrid.setDisable(false); // Enable enemy grid for attacks
+            playerGrid.setDisable(true);  // Disable player grid for ship placement
+        }
     }
 
     // Called when a ship is selected from the ListView
@@ -189,7 +234,7 @@ public class HelloController {
 
     // Handle a player's attack on the opponent
     public void handleAttack(int row, int col, Button clickedButton) {
-        boolean hit = player1Board.attack(row, col);
+        boolean hit = playerBoard.attack(row, col);
         // Update the UI based on whether it was a hit or miss
         if (hit) {
             statusLabel.setText("Hit!");
@@ -200,7 +245,7 @@ public class HelloController {
         }
 
         // Check if the game is over (if opponent's ships are all sunk)
-        if (player1Board.isGameOver()) {
+        if (playerBoard.isGameOver()) {
             statusLabel.setText("Player wins");
         }
     }
@@ -288,6 +333,7 @@ public class HelloController {
             System.out.println(ship.getName());
         }
     }
+
 
 
 
