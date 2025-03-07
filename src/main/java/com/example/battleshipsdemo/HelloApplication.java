@@ -14,17 +14,15 @@ public class HelloApplication extends Application {
     public static GameClient gameClient;
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("BattleShipScene.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("login.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1280, 720);
         stage.setTitle("Battleships");
         stage.setScene(scene);
         stage.show();
         logger.info("Starting the JavaFX application.");
         gameClient = new GameClient();
-        new Thread(() -> {
-            gameClient.connectToServer();  // Start the connection to the server
-        }).start();
     }
+
 
     public static void main(String[] args) {
         launch();

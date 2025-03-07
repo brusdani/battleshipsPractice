@@ -8,7 +8,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 
-public class HelloController {
+import java.util.HashMap;
+import java.util.Map;
+
+public class HelloController implements GameClient.MessageListener {
     @FXML
     private Label welcomeText;
 
@@ -22,6 +25,8 @@ public class HelloController {
     private RadioButton verticalButton;    // RadioButton for Vertical orientation
 
     private boolean isHorizontal = true;  // Default orientation (Horizontal)
+
+    private Map<String, Button> attackButtonMap = new HashMap<>();
 
     @FXML
     protected void onHelloButtonClick() {
@@ -45,6 +50,8 @@ public class HelloController {
 
     private GameClient gameClient;
 
+    private GameSession gameSession;
+
     private String selectedShip;  // Selected ship to be placed
 
     private GameBoard player1Board = new GameBoard();
@@ -53,8 +60,6 @@ public class HelloController {
     private GameBoard playerBoard = new GameBoard();
     private Battleship[] playerShips;
     // Create the ships for both players
-
-
 
 
     @FXML
@@ -75,14 +80,62 @@ public class HelloController {
             col = 0;
         }
 
-        handleAttack(row,col,clickedButton);
-
+        //handleAttack(row,col,clickedButton);
+        sendAttack(row, col, clickedButton);
 
     }
+    // Send attack coordinates to the server
+    public void sendAttack(int row, int col, Button clickedButton) {
+        // Send attack coordinates to the server
+        gameClient.sendAttack(row, col);
+
+        // Wait for the response (hit or miss)
+        //String result = gameClient.receiveServerMessage();
+        //statusLabel.setText(result);
+        //if (result.equals("Game over!")){
+        //    statusLabel.setText("Game over!");
+        //}
+        // Update the UI based on the result
+        //else if (result.equals("Hit")) {
+        //    clickedButton.setStyle("-fx-background-color: green;");
+        //} else {
+        //    clickedButton.setStyle("-fx-background-color: red;");
+        //}
+    }
+    @Override
+    public void onMessageReceived(String message) {
+        Platform.runLater(() -> {
+            if ("Game over!".equals(message)) {
+                statusLabel.setText("Game over!");
+                enemyGrid.setDisable(true);  // Disable grid to prevent further actions
+            }
+            else {
+                statusLabel.setText(message);  // Update with hit/miss or other messages
+            }
+        });
+    }
+
+    @Override
+    public void onAttackResultReceived(AttackResult attackResult) {
+        Platform.runLater(() -> {
+            Button clickedButton = getButtonAt(attackResult.getRow(), attackResult.getCol());  // Get the button at the attack position
+            String result = attackResult.getResult();
+            if ("Hit".equals(result)) {
+                statusLabel.setText("Hit!");
+                clickedButton.setStyle("-fx-background-color: green;");
+            } else if ("Miss".equals(result)) {
+                statusLabel.setText("Miss!");
+                clickedButton.setStyle("-fx-background-color: red;");
+            }
+        });
+    }
+
+
+
+
 
     @FXML
     private void initialize() {
-        // Set gameClient to the instance from HelloApplication
 
 
         // Initialize the ObservableList with Battleships
@@ -100,7 +153,10 @@ public class HelloController {
             drawBoard();
             currentPhase = GamePhase.PREPARATION;
             setPhase(currentPhase);
+            // Set gameClient to the instance from HelloApplication
             gameClient = HelloApplication.gameClient;
+            gameClient.setMessageListener(this);
+
             System.out.println(gameClient!=null);
         });
     }
@@ -156,8 +212,9 @@ public class HelloController {
 
             gameClient.sendGameBoard(playerBoard);
             String encodedGameBoard = Protocol.encodeGameBoard(playerBoard);
-            //System.out.println("Encoded GameBoard (sending to server):\n" + encodedGameBoard);
+            System.out.println("Encoded GameBoard (sending to server):\n" + encodedGameBoard);
 
+            gameClient.sendReadySignal();
             setPhase(currentPhase); // Update the UI based on the new phase
             }
          else {
@@ -337,6 +394,14 @@ public class HelloController {
             System.out.println(ship.getName());
         }
     }
+    private Button getButtonAt(int row, int col) {
+        // Get the index in the GridPane based on the row and column (assuming a 10x10 grid)
+        int index = row * 10 + col;
+
+        // Retrieve the button from the GridPane's children list
+        return (Button) enemyGrid.getChildren().get(index);
+    }
+
 
 
 
