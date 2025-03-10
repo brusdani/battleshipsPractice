@@ -59,6 +59,7 @@ public class GameSession {
     public boolean isPlayer1Turn() {
         return isPlayer1Turn;
     }
+
     public boolean isPlayer2Turn() {
         return isPlayer2Turn;
     }
@@ -76,13 +77,22 @@ public class GameSession {
     }
 
     // Method to handle the attack
-    public String handleAttack(int row, int col) {
+    public AttackResult handleAttack(AttackData attackData) {
+        String result;
+
+        // Determine if it's Player 1's or Player 2's turn
         if (isPlayer1Turn) {
-            return gameBoard2.attack(row, col) ? "Hit" : "Miss";
+            // Player 1 is attacking Player 2's board
+            result = gameBoard2.attack(attackData.getRow(), attackData.getCol()) ? "Hit" : "Miss";
         } else {
-            return gameBoard1.attack(row, col) ? "Hit" : "Miss";
+            // Player 2 is attacking Player 1's board
+            result = gameBoard1.attack(attackData.getRow(), attackData.getCol()) ? "Hit" : "Miss";
         }
+
+        // Return an AttackResult instance with the result
+        return new AttackResult(attackData.getRow(), attackData.getCol(), result);
     }
+
 
     // Method to check if the game is over
     public boolean isGameOver() {
@@ -93,8 +103,9 @@ public class GameSession {
     public boolean arePlayersReady() {
         return gameBoard1 != null && gameBoard2 != null && currentPhase == GamePhase.PREPARATION;
     }
-    public boolean isPlayer1Ready(){
-        return  isPlayer1Ready;
+
+    public boolean isPlayer1Ready() {
+        return isPlayer1Ready;
     }
 
     public void setPlayer1Ready(boolean player1Ready) {
@@ -108,6 +119,7 @@ public class GameSession {
     public void setPlayer2Ready(boolean player2Ready) {
         isPlayer2Ready = player2Ready;
     }
+
     public void handlePlayerBoard(int playerNumber, ObjectInputStream inputStream, ObjectOutputStream outputStream) {
         try {
             // Receive the GameBoard from the client
@@ -127,6 +139,31 @@ public class GameSession {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             log.error("Error receiving GameBoard from player", e);
+        }
+    }
+
+    public void notifyTurn() {
+        try {
+            if (isPlayer1Turn) {
+                outputStream1.writeObject("Your turn!");
+                outputStream2.writeObject("Waiting");
+            } else {
+                outputStream1.writeObject("Waiting");
+                outputStream2.writeObject("Your turn!");
+            }
+            outputStream1.flush();
+            outputStream2.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void startBattle(){
+        isPlayer1Turn=true;
+        try {
+            outputStream1.writeObject("Your turn!");
+            outputStream2.writeObject("Waiting");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

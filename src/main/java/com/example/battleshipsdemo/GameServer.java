@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GameServer {
     private static final Logger log = LoggerFactory.getLogger(GameServer.class);
@@ -81,6 +80,7 @@ public class GameServer {
                             gameSession.outputStream1.flush();
                             gameSession.setPlayer1Ready(true);
                             log.info("Player 1's GameBoard received and ready");
+                            gameSession.outputStream2.writeObject("Waiting for opponent");
                         } catch (IOException | ClassNotFoundException e) {
                             e.printStackTrace();
                         }
@@ -94,6 +94,7 @@ public class GameServer {
                             gameSession.outputStream2.writeObject("Your GameBoard has been received.");
                             gameSession.outputStream2.flush();
                             gameSession.setPlayer2Ready(true);
+                            gameSession.outputStream2.writeObject("Waiting for opponent");
                             log.info("Player 2's GameBoard received and ready");
                         } catch (IOException | ClassNotFoundException e) {
                             e.printStackTrace();
@@ -108,26 +109,32 @@ public class GameServer {
                     try {
                         player1Thread.join();
                         player2Thread.join();
+                        log.info("Threads were joined");
+                        gameSession.startBattle();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
 
+                    while (true) {
+                        gameSession.notifyTurn();
+                        // Wait for both players to be ready
+                        if (gameSession.isPlayer1Turn()) {
+                            AttackData attackData = (AttackData) gameSession.inputStream1.readObject();
+                            AttackResult attackResult = gameSession.handleAttack(attackData);
+                            gameSession.outputStream1.writeObject(attackResult);
+                            gameSession.outputStream2.writeObject(attackResult);
+                            Thread.sleep(1000);
+                            gameSession.switchTurn();
+                        } else  {
+                            AttackData attackData = (AttackData) gameSession.inputStream2.readObject();
+                            AttackResult attackResult = gameSession.handleAttack(attackData);
+                            gameSession.outputStream1.writeObject(attackResult);
+                            gameSession.outputStream2.writeObject(attackResult);
+                            // Once Player 2's action is completed, switch the turn
+                            gameSession.switchTurn();
+                        }
 
-                    // Start both threads
-                    player1Thread.start();
-                    player2Thread.start();
-
-                    try {
-                        player1Thread.join();
-                        player2Thread.join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
                     }
-
-
-
-                    // Switch turn
-                    gameSession.switchTurn();
                 }
 
 

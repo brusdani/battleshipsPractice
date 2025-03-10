@@ -11,6 +11,8 @@ import javafx.scene.layout.GridPane;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.battleshipsdemo.GamePhase.*;
+
 public class HelloController implements GameClient.MessageListener {
     @FXML
     private Label welcomeText;
@@ -43,6 +45,10 @@ public class HelloController implements GameClient.MessageListener {
 
     @FXML
     private ListView<Battleship> shipView;
+    @FXML
+    private Button resetButton;
+    @FXML
+    private Button startButton;
 
     private ObservableList<Battleship> ships = FXCollections.observableArrayList();
 
@@ -88,19 +94,6 @@ public class HelloController implements GameClient.MessageListener {
     public void sendAttack(int row, int col, Button clickedButton) {
         // Send attack coordinates to the server
         gameClient.sendAttack(row, col);
-
-        // Wait for the response (hit or miss)
-        //String result = gameClient.receiveServerMessage();
-        //statusLabel.setText(result);
-        //if (result.equals("Game over!")){
-        //    statusLabel.setText("Game over!");
-        //}
-        // Update the UI based on the result
-        //else if (result.equals("Hit")) {
-        //    clickedButton.setStyle("-fx-background-color: green;");
-        //} else {
-        //    clickedButton.setStyle("-fx-background-color: red;");
-        //}
     }
     @Override
     public void onMessageReceived(String message) {
@@ -108,8 +101,13 @@ public class HelloController implements GameClient.MessageListener {
             if ("Game over!".equals(message)) {
                 statusLabel.setText("Game over!");
                 enemyGrid.setDisable(true);  // Disable grid to prevent further actions
-            }
-            else {
+            } else if ("Your turn!".equals(message)) {
+                statusLabel.setText("It's your turn");
+                setPhase(GamePhase.PLAYER_TURN);
+            } else if ("Waiting".equals(message)) {
+                statusLabel.setText("Waiting for opponent");
+                setPhase(GamePhase.WAITING);
+            } else {
                 statusLabel.setText(message);  // Update with hit/miss or other messages
             }
         });
@@ -120,6 +118,7 @@ public class HelloController implements GameClient.MessageListener {
         Platform.runLater(() -> {
             Button clickedButton = getButtonAt(attackResult.getRow(), attackResult.getCol());  // Get the button at the attack position
             String result = attackResult.getResult();
+            System.out.println(currentPhase);
             if ("Hit".equals(result)) {
                 statusLabel.setText("Hit!");
                 clickedButton.setStyle("-fx-background-color: green;");
@@ -205,22 +204,27 @@ public class HelloController implements GameClient.MessageListener {
     }
     // Method to switch to the Battle phase
     @FXML
-    private void startBattlePhase() {
+    private void startWaitingPhase() {
         if (ships.isEmpty()) {
-            currentPhase = GamePhase.BATTLE;
-            player1Board = playerBoard;
+            Platform.runLater(() -> {
+                currentPhase = GamePhase.WAITING;  // Set the game phase to WAITING
+                player1Board = playerBoard;
 
-            gameClient.sendGameBoard(playerBoard);
-            String encodedGameBoard = Protocol.encodeGameBoard(playerBoard);
-            System.out.println("Encoded GameBoard (sending to server):\n" + encodedGameBoard);
+                // Send game data to the server
+                gameClient.sendGameBoard(playerBoard);
+                String encodedGameBoard = Protocol.encodeGameBoard(playerBoard);
+                System.out.println("Encoded GameBoard (sending to server):\n" + encodedGameBoard);
+                System.out.println(currentPhase);
+                setPhase(currentPhase);
 
-            gameClient.sendReadySignal();
-            setPhase(currentPhase); // Update the UI based on the new phase
-            }
-         else {
+                // Update UI elements that depend on the current phase, if needed
+                // For example, you can update statusLabel here
+            });
+        } else {
             System.out.println("Place all ships before starting the game");
         }
     }
+
 
     @FXML
     private void exitGame() {
@@ -248,11 +252,22 @@ public class HelloController implements GameClient.MessageListener {
             // During the PREPARATION phase, disable the attack grid and enable the placement grid
             enemyGrid.setDisable(true);  // Disable enemy grid for attacks
             playerGrid.setDisable(false); // Enable player grid for ship placement
-        } else if (phase == GamePhase.BATTLE) {
+        } else if (phase == GamePhase.PLAYER_TURN) {
+            currentPhase = PLAYER_TURN;
             // During the BATTLE phase, enable the attack grid and disable the placement grid
             enemyGrid.setDisable(false); // Enable enemy grid for attacks
             playerGrid.setDisable(true);  // Disable player grid for ship placement
-        }
+        }  else if (phase == GamePhase.WAITING) {
+            currentPhase = WAITING;
+            // During the BATTLE phase, enable the attack grid and disable the placement grid
+            enemyGrid.setDisable(true); // Enable enemy grid for attacks
+            playerGrid.setDisable(true);
+            statusLabel.setText("Waiting for opponent");
+            resetButton.setDisable(true);
+            startButton.setDisable(true);
+
+    }
+
     }
 
     // Called when a ship is selected from the ListView
@@ -398,8 +413,14 @@ public class HelloController implements GameClient.MessageListener {
         // Get the index in the GridPane based on the row and column (assuming a 10x10 grid)
         int index = row * 10 + col;
 
-        // Retrieve the button from the GridPane's children list
-        return (Button) enemyGrid.getChildren().get(index);
+        if (currentPhase == PLAYER_TURN) {
+
+            return (Button) enemyGrid.getChildren().get(index);
+
+        } else {
+            // Retrieve the button from the GridPane's children list
+            return (Button) playerGrid.getChildren().get(index);
+        }
     }
 
 

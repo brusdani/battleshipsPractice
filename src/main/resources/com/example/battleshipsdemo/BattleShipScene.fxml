@@ -358,8 +358,8 @@
                      </toggleGroup>
                   </RadioButton>
                   <RadioButton fx:id="verticalButton" layoutX="8.0" layoutY="473.0" mnemonicParsing="false" onAction="#setVertical" prefHeight="34.0" prefWidth="214.0" text="Vertical" toggleGroup="$toggleGroup" />
-                  <Button layoutX="20.0" layoutY="518.0" mnemonicParsing="false" onAction="#resetPlacement" prefHeight="34.0" prefWidth="208.0" text="Reset" />
-                  <Button layoutX="20.0" layoutY="565.0" mnemonicParsing="false" onAction="#startBattlePhase" prefHeight="34.0" prefWidth="208.0" text="Start" />
+                  <Button fx:id="resetButton" layoutX="20.0" layoutY="518.0" mnemonicParsing="false" onAction="#resetPlacement" prefHeight="34.0" prefWidth="208.0" text="Reset" />
+                  <Button fx:id="startButton" layoutX="20.0" layoutY="565.0" mnemonicParsing="false" onAction="#startWaitingPhase" prefHeight="34.0" prefWidth="208.0" text="Start" />
                   <Button layoutX="20.0" layoutY="612.0" mnemonicParsing="false" onAction="#exitGame" prefHeight="34.0" prefWidth="208.0" text="Exit" />
                </children>
             </AnchorPane>

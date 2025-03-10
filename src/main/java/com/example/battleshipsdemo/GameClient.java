@@ -224,6 +224,7 @@ public class GameClient {
 
 
 
+
     public interface MessageListener {
         void onMessageReceived(String message);  // Called for messages like "Game over!", "Hit", "Miss"
         void onAttackResultReceived(AttackResult attackResult);  // Called when an attack result is received (e.g., coordinates and result)
