@@ -1,0 +1,216 @@
+/* General layout */
+.root {
+    -fx-font-family: "Arial";
+    -fx-background-color: #f0f0f0;
+    -fx-alignment: center;
+}
+
+
+/* Username and Password Fields */
+.text-field, .password-field {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #a1a1a1;
+    -fx-border-radius: 5px;
+    -fx-padding: 10px;
+    -fx-font-size: 16px;
+}
+
+/* Username field specific */
+#usernameField {
+    -fx-background-color: #e8e8e8;
+}
+
+/* Password field specific */
+#passwordField {
+    -fx-background-color: #e8e8e8;
+}
+
+/* Button */
+#loginButton {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 10px;
+    -fx-background-radius: 5px;
+    -fx-effect: innershadow(gaussian, #888, 5, 0, 1, 1);
+}
+
+.button:hover {
+    -fx-background-color: #45a049;
+}
+
+.button:pressed {
+    -fx-background-color: #2e8b57;
+}
+#titleLabel {
+    -fx-font-family: 'Press Start 2P';
+    -fx-font-size: 40px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2e3d48; /* Color for the text */
+    -fx-padding: 10px;
+}
+#loginLabel {
+    -fx-font-size: 18px;
+    -fx-text-fill: #555555;
+    -fx-padding: 5px;
+}
+#passwordLabel {
+    -fx-font-size: 18px;
+    -fx-text-fill: #555555;
+    -fx-padding: 5px;
+}
+#errorLabel{
+    -fx-font-family: 'Press Start 2P';
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+    -fx-text-fill: red;
+}
+#waitingLabel {
+    -fx-font-family: 'Press Start 2P';
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+    -fx-text-fill: #2e3d48;
+}
+#forfeitLabel {
+    -fx-font-family: 'Press Start 2P';
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+    -fx-text-fill: #2e3d48;
+}
+#victoryLabel {
+    -fx-font-family: 'Press Start 2P';
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+    -fx-text-fill: #2e3d48;
+}
+#gameResultLabel{
+    -fx-font-family: 'Press Start 2P';
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+    -fx-text-fill: #2e3d48;
+}
+#opponentShipsLabel{
+    -fx-font-family: 'Press Start 2P';
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+    -fx-text-fill: #2e3d48;
+}
+#playerShipsLabel{
+    -fx-font-family: 'Press Start 2P';
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+    -fx-text-fill: #2e3d48;
+}
+#countdownLabel{
+    -fx-font-family: 'Press Start 2P';
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+    -fx-text-fill: #2e3d48;
+}
+#connectionLostLabel{
+    -fx-font-family: 'Press Start 2P';
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+    -fx-text-fill: red;
+}
+#readyButton {
+    -fx-font-family: 'Press Start 2P';
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-padding: 10px;
+    -fx-background-radius: 5px;
+    -fx-effect: innershadow(gaussian, #888, 5, 0, 1, 1);
+}
+#retryButton {
+    -fx-font-family: 'Press Start 2P';
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-padding: 10px;
+    -fx-background-radius: 5px;
+    -fx-effect: innershadow(gaussian, #888, 5, 0, 1, 1);
+}
+#returnButton {
+    -fx-font-family: 'Press Start 2P';
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-padding: 10px;
+    -fx-background-radius: 5px;
+    -fx-effect: innershadow(gaussian, #888, 5, 0, 1, 1);
+}
+#requeueButton {
+    -fx-font-family: 'Press Start 2P';
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-padding: 10px;
+    -fx-background-radius: 5px;
+    -fx-effect: innershadow(gaussian, #888, 5, 0, 1, 1);
+}
+#resetButton {
+    -fx-font-family: 'Press Start 2P';
+    -fx-background-color: #FBC02D;
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-padding: 10px;
+    -fx-background-radius: 5px;
+    -fx-effect: innershadow(gaussian, #888, 5, 0, 1, 1);
+}
+#exitButton {
+    -fx-font-family: 'Press Start 2P';
+    -fx-background-color: #E57373;
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-padding: 10px;
+    -fx-background-radius: 5px;
+    -fx-effect: innershadow(gaussian, #888, 5, 0, 1, 1);
+}
+
+/* Layout adjustments */
+.anchor-pane {
+    -fx-padding: 20px;
+}
+#playerGrid {
+    -fx-background-color: #e0e0e0;
+    -fx-padding: 5px;
+}
+
+/* Style for the grid buttons */
+.gridButton {
+    -fx-font-family: 'Press Start 2P';
+    -fx-font-size: 12px;
+    -fx-min-width: 30px;
+    -fx-min-height: 30px;
+    -fx-background-color: linear-gradient(to bottom, #ffffff, #dddddd);
+    -fx-background-radius: 3px;
+    -fx-border-color: #aaa;
+    -fx-border-radius: 3px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 5, 0, 2, 2);
+}
+.gridButton:disabled {
+    -fx-background-color: #cccccc;  /* A lighter gray to avoid heavy dimming */
+    -fx-opacity: 0.7;              /* Adjust opacity to your liking */
+    -fx-text-fill: #666666;        /* If text is present, color it lighter but still readable */
+}
+
+/* Hover state for grid buttons */
+.gridButton:hover {
+    -fx-background-color: #b3daff;
+}
+
+/* Pressed state for grid buttons */
+.gridButton:pressed {
+    -fx-background-color: #99ceff;
+}

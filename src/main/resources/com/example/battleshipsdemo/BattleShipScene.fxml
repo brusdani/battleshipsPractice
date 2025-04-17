@@ -218,7 +218,7 @@
                   <Button layoutX="10.0" layoutY="466.0" mnemonicParsing="false" onAction="#handleCellClick" prefHeight="45.0" prefWidth="50.0" text="J10" GridPane.columnIndex="9" GridPane.rowIndex="9" />
                </children>
             </GridPane>
-            <Label fx:id="statusLabel" layoutX="180.0" layoutY="101.0" prefHeight="33.0" prefWidth="118.0" text="Label" />
+            <Label fx:id="statusLabel" alignment="CENTER" layoutX="229.0" layoutY="102.0" prefHeight="34.0" prefWidth="647.0" text="Label" />
             <GridPane fx:id="playerGrid" gridLinesVisible="true" layoutX="568.0" layoutY="152.0">
                <columnConstraints>
                   <ColumnConstraints hgrow="SOMETIMES" minWidth="50.0" prefWidth="50.0" />
@@ -347,7 +347,7 @@
                   <Button layoutX="10.0" layoutY="466.0" mnemonicParsing="false" onAction="#handlePlacementClick" prefHeight="45.0" prefWidth="50.0" text="J10" GridPane.columnIndex="9" GridPane.rowIndex="9" />
                </children>
             </GridPane>
-            <Label layoutX="180.0" layoutY="58.0" text="Attack!" />
+            <Label layoutX="70.0" layoutY="93.0" text="Attack!" />
             <Label layoutX="767.0" layoutY="76.0" text="Our FLeet" />
             <AnchorPane layoutX="1089.0" layoutY="-2.0" prefHeight="657.0" prefWidth="254.0">
                <children>
@@ -361,8 +361,10 @@
                   <Button fx:id="resetButton" layoutX="20.0" layoutY="518.0" mnemonicParsing="false" onAction="#resetPlacement" prefHeight="34.0" prefWidth="208.0" text="Reset" />
                   <Button fx:id="startButton" layoutX="20.0" layoutY="565.0" mnemonicParsing="false" onAction="#startWaitingPhase" prefHeight="34.0" prefWidth="208.0" text="Start" />
                   <Button layoutX="20.0" layoutY="612.0" mnemonicParsing="false" onAction="#exitGame" prefHeight="34.0" prefWidth="208.0" text="Exit" />
+                  <Label fx:id="countdownLabel" layoutX="40.0" layoutY="48.0" prefHeight="88.0" prefWidth="158.0" text="Label" />
                </children>
             </AnchorPane>
+            <Label fx:id="titleLabel" alignment="CENTER" layoutX="194.0" layoutY="14.0" prefHeight="46.0" prefWidth="707.0" text="Battleships" />
       </children>
     </AnchorPane>
   </children>

@@ -15,6 +15,8 @@ public class SceneController {
     private Stage stage;
     private Scene scene;
     private static String mode;
+
+    private GameResult gameResult;
     public SceneController(){
     }
     public void changeScene(ActionEvent event, String sceneName) throws IOException {
@@ -33,6 +35,7 @@ public class SceneController {
         stage.setScene(scene);
         stage.show();
     }
+
     private void setStage(ActionEvent actionEvent) {
         if (actionEvent.getSource() instanceof Node) {
             this.stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();

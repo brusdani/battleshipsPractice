@@ -87,6 +87,14 @@ public class GameBoard implements Serializable {
     public boolean attack(int row, int col) {
         if (board[row][col] == 1) {
             board[row][col] = 2; // Mark as hit
+            Battleship hitShip = getHitShip(row, col);
+            if (hitShip != null) {
+                hitShip.registerHit(); // Increase the counter
+                if (hitShip.isSunk()) {
+                    // Optionally, you could log that the ship was sunk, or perform further actions.
+                    System.out.println("Ship " + hitShip.getName() + " has been sunk!");
+                }
+            }
             return true; // Hit
         }
         board[row][col] = 3; // Mark as miss
@@ -112,5 +120,17 @@ public class GameBoard implements Serializable {
     public List<ShipPlacement> getPlacedShips() {
         return placedShips;
     }
+    public Battleship getHitShip(int row, int col) {
+        for (ShipPlacement placement : placedShips) {
+            // Assume each placement maintains a list of coordinates it occupies
+            for (int[] coord : placement.getOccupiedCoordinates()) {
+                if (coord[0] == row && coord[1] == col) {
+                    return placement.getShip(); // Return the Battleship associated with this placement
+                }
+            }
+        }
+        return null;  // No ship found at the attacked coordinate
+    }
+
 }
 

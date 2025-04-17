@@ -6,11 +6,19 @@ public class Battleship implements Serializable {
     private int size;
     private String name;
     private boolean isSunk;
+    private int hitCount = 0;
 
     public Battleship(int size, String name) {
         this.size = size;
         this.name = name;
         this.isSunk = false;
+    }
+
+    public void registerHit() {
+        hitCount++;
+        if (hitCount >= size) {
+            isSunk = true;
+        }
     }
 
     public int getSize() {

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.battleshipsdemo.ResultScreenController">
+   <children>
+      <Label fx:id="gameResultLabel" alignment="CENTER" layoutX="102.0" layoutY="35.0" prefHeight="84.0" prefWidth="403.0" text="Result Label" />
+      <Button fx:id="requeueButton" layoutX="75.0" layoutY="287.0" mnemonicParsing="false" onAction="#playAgainButtonClick" prefHeight="26.0" prefWidth="186.0" text="Play Again" />
+      <Button fx:id="exitButton" layoutX="346.0" layoutY="287.0" mnemonicParsing="false" onAction="#exitButtonClick" prefHeight="26.0" prefWidth="186.0" text="Exit" />
+      <Label fx:id="playerShipsLabel" alignment="CENTER" layoutX="30.0" layoutY="142.0" prefHeight="46.0" prefWidth="550.0" text="Player Ships" />
+      <Label fx:id="opponentShipsLabel" alignment="CENTER" layoutX="30.0" layoutY="200.0" prefHeight="46.0" prefWidth="550.0" text="Opponent ships" />
+   </children>
+</AnchorPane>

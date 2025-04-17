@@ -3,167 +3,211 @@ package com.example.battleshipsdemo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
 
+/**
+ * A refactored game session that encapsulates game logic without its own thread,
+ * and uses MessageSender to decouple sending from logic.
+ */
 public class GameSession {
-    private static final Logger log = LoggerFactory.getLogger(GameClient.class);
-    private final Socket player1;
-    private final Socket player2;
-    public final ObjectOutputStream outputStream1;
-    public final ObjectOutputStream outputStream2;
-    public final ObjectInputStream inputStream1;
-    public final ObjectInputStream inputStream2;
+    private final Player player1;
+    private final Player player2;
+    private final MessageSender sender1;
+    private final MessageSender sender2;
+    private final PlayerMessageListener listener1;
+    private final PlayerMessageListener listener2;
+
+    private static final Logger log = LoggerFactory.getLogger(GameSession.class);
 
     private GameBoard gameBoard1;
     private GameBoard gameBoard2;
     private boolean isPlayer1Turn;
-    private boolean isPlayer2Turn;
+    private boolean sessionActive;
+    private boolean battleStarted = false;
+    private long turnStartTime;
+    private static final long TURN_TIMEOUT_MS = 30_000;
 
-    private boolean isPlayer1Ready = false;
-    private boolean isPlayer2Ready = false;
-    public GamePhase currentPhase; // New phase variable
-
-
-    public GameSession(Socket player1, Socket player2) throws IOException {
+    public GameSession(Player player1, Player player2) {
         this.player1 = player1;
         this.player2 = player2;
-        this.outputStream1 = new ObjectOutputStream(player1.getOutputStream());
-        this.outputStream2 = new ObjectOutputStream(player2.getOutputStream());
-        this.inputStream1 = new ObjectInputStream(player1.getInputStream());
-        this.inputStream2 = new ObjectInputStream(player2.getInputStream());
-
+        this.sender1 = player1.getMessageSender();
+        this.sender2 = player2.getMessageSender();
         this.gameBoard1 = new GameBoard();
         this.gameBoard2 = new GameBoard();
-        this.isPlayer1Turn = true; // Player 1 starts first
-        this.currentPhase = GamePhase.PREPARATION; // Start with preparation phase
+        this.isPlayer1Turn = true;  // Player 1 starts
+        this.sessionActive = true;
+        this.turnStartTime = System.currentTimeMillis();
+        this.listener1 = player1.getPlayerMessageListener();
+        this.listener2 = player2.getPlayerMessageListener();
     }
 
-    // Getter and Setter methods
-    public GameBoard getGameBoard1() {
-        return gameBoard1;
+
+
+    /**
+     * Kick off the session: send prep phase message.
+     */
+    public void initialize() {
+        // 3) Wire the old callbacks:
+        listener1.setDisconnectionCallback(this::playerDisconnected);
+        listener2.setDisconnectionCallback(this::playerDisconnected);
+        listener1.setReadyCallback(this::startBattle);
+        listener2.setReadyCallback(this::startBattle);
+
+        // 4) **Wire your new board & attack callbacks:**
+        listener1.setBoardCallback(this::setBoard);
+        listener2.setBoardCallback(this::setBoard);
+        listener1.setAttackCallback(this::handleAttack);
+        listener2.setAttackCallback(this::handleAttack);
+
+        sender1.send("Preparation phase");
+        sender2.send("Preparation phase");
+
+        player1.setReady(false);
+        player2.setReady(false);
     }
 
-    public GameBoard getGameBoard2() {
-        return gameBoard2;
+    /**
+     * Called when both players have placed their boards.
+     */
+    public void startBattle(Player player) {
+        if (player1.isReady() && player2.isReady()) {
+            sender1.send("BattleStarting");
+            sender2.send("BattleStarting");
+            notifyTurn();
+            battleStarted = true;
+        }
+
     }
 
-    public void setGameBoard1(GameBoard gameBoard) {
-        this.gameBoard1 = gameBoard;
+    /**
+     * Notify players whose turn it is.
+     */
+    public void notifyTurn() {
+        if (isPlayer1Turn) {
+            sender1.send("Your turn!");
+            sender2.send("Waiting");
+        } else {
+            sender1.send("Waiting");
+            sender2.send("Your turn!");
+        }
+        // reset timer
+        turnStartTime = System.currentTimeMillis();
     }
 
-    public void setGameBoard2(GameBoard gameBoard) {
-        this.gameBoard2 = gameBoard;
+    /**
+     * Process an attack from the current player.
+     */
+    public void handleAttack(AttackData data) {
+        AttackResult result;
+        if (isPlayer1Turn) {
+            boolean hit = gameBoard2.attack(data.getRow(), data.getCol());
+            result = new AttackResult(data.getRow(), data.getCol(), hit ? "Hit" : "Miss", player1.getUsername());
+        } else {
+            boolean hit = gameBoard1.attack(data.getRow(), data.getCol());
+            result = new AttackResult(data.getRow(), data.getCol(), hit ? "Hit" : "Miss", player2.getUsername());
+        }
+        sender1.send(result);
+        sender2.send(result);
+        // advance turn
+        switchTurn();
     }
 
-    public boolean isPlayer1Turn() {
-        return isPlayer1Turn;
-    }
-
-    public boolean isPlayer2Turn() {
-        return isPlayer2Turn;
-    }
-
+    /**
+     * Switches turn and notifies players.
+     */
     public void switchTurn() {
         isPlayer1Turn = !isPlayer1Turn;
+        notifyTurn();
     }
 
-    public GamePhase getCurrentPhase() {
-        return currentPhase;
+    /**
+     * Periodic tick called by scheduler to enforce timeouts.
+     */
+    public void tick() {
+        log.debug("[Session {}] tick() called. battleStarted={}  sessionActive={}",
+                this, battleStarted, sessionActive);
+        if (!sessionActive) {
+            log.debug("[Session {}] tick() ignoring because sessionActive=false", this);
+            return;
+        }
+        if (!battleStarted) {
+            log.debug("[Session {}] tick() ignoring because battle not started yet", this);
+            return;
+        }
+
+
+        if (!sessionActive || !battleStarted) return;
+        long now = System.currentTimeMillis();
+        if (now - turnStartTime >= TURN_TIMEOUT_MS) {
+            // timeout - skip or switch
+            sender1.send("Turn timed out");
+            sender2.send("Turn timed out");
+            switchTurn();
+        }
+        // check game over
+        if (gameBoard1.isGameOver() || gameBoard2.isGameOver()) {
+            log.warn("[Session {}] game over detected in tick(), ending session", this);
+            endSession();
+        }
     }
 
-    public void setCurrentPhase(GamePhase phase) {
-        currentPhase = phase;
+    /**
+     * Clean up and notify results.
+     */
+    public void endSession() {
+        GameResult r1 = determineResultFor(player1);
+        GameResult r2 = determineResultFor(player2);
+        sender1.send(r1);
+        sender2.send(r2);
+        sessionActive = false;
+        sender1.stop();
+        sender2.stop();
     }
 
-    // Method to handle the attack
-    public AttackResult handleAttack(AttackData attackData) {
-        String result;
-
-        // Determine if it's Player 1's or Player 2's turn
-        if (isPlayer1Turn) {
-            // Player 1 is attacking Player 2's board
-            result = gameBoard2.attack(attackData.getRow(), attackData.getCol()) ? "Hit" : "Miss";
+    private GameResult determineResultFor(Player p) {
+        if (gameBoard2.isGameOver() && p.equals(player1)) {
+            return new GameResult(true, "You won!");
+        } else if (gameBoard1.isGameOver() && p.equals(player2)) {
+            return new GameResult(true, "You won!");
         } else {
-            // Player 2 is attacking Player 1's board
-            result = gameBoard1.attack(attackData.getRow(), attackData.getCol()) ? "Hit" : "Miss";
-        }
-
-        // Return an AttackResult instance with the result
-        return new AttackResult(attackData.getRow(), attackData.getCol(), result);
-    }
-
-
-    // Method to check if the game is over
-    public boolean isGameOver() {
-        return gameBoard1.isGameOver() || gameBoard2.isGameOver();
-    }
-
-    // Method to check if both players are ready and change the game phase to BATTLE
-    public boolean arePlayersReady() {
-        return gameBoard1 != null && gameBoard2 != null && currentPhase == GamePhase.PREPARATION;
-    }
-
-    public boolean isPlayer1Ready() {
-        return isPlayer1Ready;
-    }
-
-    public void setPlayer1Ready(boolean player1Ready) {
-        isPlayer1Ready = player1Ready;
-    }
-
-    public boolean isPlayer2Ready() {
-        return isPlayer2Ready;
-    }
-
-    public void setPlayer2Ready(boolean player2Ready) {
-        isPlayer2Ready = player2Ready;
-    }
-
-    public void handlePlayerBoard(int playerNumber, ObjectInputStream inputStream, ObjectOutputStream outputStream) {
-        try {
-            // Receive the GameBoard from the client
-            GameBoard gameBoard = (GameBoard) inputStream.readObject();
-            if (playerNumber == 1) {
-                this.setGameBoard1(gameBoard); // Store GameBoard for Player 1
-                log.info("Received GameBoard for Player 1: {}", gameBoard);
-            } else if (playerNumber == 2) {
-                this.setGameBoard2(gameBoard); // Store GameBoard for Player 2
-                log.info("Received GameBoard for Player 2: {}", gameBoard);
-            }
-
-            // Send confirmation to the client
-            outputStream.writeObject("Your GameBoard has been received.");
-            outputStream.flush();
-
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            log.error("Error receiving GameBoard from player", e);
+            return new GameResult(false, "You lost.");
         }
     }
 
-    public void notifyTurn() {
+    // Methods to handle board placement events:
+    public void setBoard(Player player, GameBoard board) {
+        if (player.equals(player1)) {
+            this.gameBoard1 = board;
+            sender1.send("Your GameBoard has been received.");
+        } else {
+            this.gameBoard2 = board;
+            sender2.send("Your GameBoard has been received.");
+        }
+    }
+
+    private void handlePlayerDisconnection(Player disconnectedPlayer) {
+        // Log the disconnection event.
+        log.info("Player {} has disconnected. Ending game session.", disconnectedPlayer.getUsername());
         try {
-            if (isPlayer1Turn) {
-                outputStream1.writeObject("Your turn!");
-                outputStream2.writeObject("Waiting");
+            if (disconnectedPlayer.equals(player1)) {
+                sender2.send("Opponent disconnected");
             } else {
-                outputStream1.writeObject("Waiting");
-                outputStream2.writeObject("Your turn!");
+                sender1.send("Opponent disconnected");
             }
-            outputStream1.flush();
-            outputStream2.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
+
+        } catch (Exception e) {
+            log.info("Exception occured");
+        }
+        sessionActive = false;
+        System.out.println("Session active: " + sessionActive);
+        // Optionally, you might break out or notify waiting threads:
+        synchronized (this) {
+            notifyAll();
         }
     }
-    public void startBattle(){
-        isPlayer1Turn=true;
-        try {
-            outputStream1.writeObject("Your turn!");
-            outputStream2.writeObject("Waiting");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void playerDisconnected(Player player, Exception e) {
+        handlePlayerDisconnection(player);
     }
+
+    // Additional event handlers (e.g., disconnection) can be added similarly.
 }

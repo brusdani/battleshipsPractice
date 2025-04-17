@@ -5,15 +5,18 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.example.battleshipsdemo.GamePhase.*;
 
-public class HelloController implements GameClient.MessageListener {
+public class HelloController implements GameObserver {
     @FXML
     private Label welcomeText;
 
@@ -25,6 +28,9 @@ public class HelloController implements GameClient.MessageListener {
 
     @FXML
     private RadioButton verticalButton;    // RadioButton for Vertical orientation
+
+    @FXML
+    private TextArea commentaryBox;
 
     private boolean isHorizontal = true;  // Default orientation (Horizontal)
 
@@ -49,6 +55,10 @@ public class HelloController implements GameClient.MessageListener {
     private Button resetButton;
     @FXML
     private Button startButton;
+    @FXML
+    private Label countdownLabel;
+
+    private SceneController sceneController = new SceneController();
 
     private ObservableList<Battleship> ships = FXCollections.observableArrayList();
 
@@ -56,14 +66,13 @@ public class HelloController implements GameClient.MessageListener {
 
     private GameClient gameClient;
 
-    private GameSession gameSession;
+    private ClientTimer clientTimer;
+
 
     private String selectedShip;  // Selected ship to be placed
 
-    private GameBoard player1Board = new GameBoard();
-    private GameBoard player2Board = new GameBoard();
 
-    private GameBoard playerBoard = new GameBoard();
+    private GameBoard playerBoard = GameSessionData.getInstance().getPlayerBoard();
     private Battleship[] playerShips;
     // Create the ships for both players
 
@@ -96,17 +105,43 @@ public class HelloController implements GameClient.MessageListener {
         gameClient.sendAttack(row, col);
     }
     @Override
-    public void onMessageReceived(String message) {
+    public void onNotified(String message) {
+        Stage currentStage = (Stage) statusLabel.getScene().getWindow();
         Platform.runLater(() -> {
             if ("Game over!".equals(message)) {
                 statusLabel.setText("Game over!");
                 enemyGrid.setDisable(true);  // Disable grid to prevent further actions
             } else if ("Your turn!".equals(message)) {
                 statusLabel.setText("It's your turn");
+                startTurnTimer(30);
                 setPhase(GamePhase.PLAYER_TURN);
             } else if ("Waiting".equals(message)) {
                 statusLabel.setText("Waiting for opponent");
+                startTurnTimer(30);
                 setPhase(GamePhase.WAITING);
+            } else if ("You won!".equals(message) || "You lost!".equals(message)) {
+                statusLabel.setText("Game over" + message);
+                showGameOverAlert(message);
+            } else if ("Disconnected from server".equals(message)) {
+                if (clientTimer != null) {
+                    clientTimer.stopTimer();
+                }
+                try {
+                    gameClient.getGameStateNotifier().removeObserver(this);
+                    sceneController.changeScene(currentStage,"player-disconnected.fxml");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else if ("Opponent disconnected".equals(message)) {
+                if (clientTimer != null) {
+                    clientTimer.stopTimer();
+                }
+                try {
+                    gameClient.getGameStateNotifier().removeObserver(this);
+                    sceneController.changeScene(currentStage,"opponent-disconnected.fxml");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             } else {
                 statusLabel.setText(message);  // Update with hit/miss or other messages
             }
@@ -114,22 +149,48 @@ public class HelloController implements GameClient.MessageListener {
     }
 
     @Override
-    public void onAttackResultReceived(AttackResult attackResult) {
+    public void onNotified(AttackResult attackResult) {
         Platform.runLater(() -> {
-            Button clickedButton = getButtonAt(attackResult.getRow(), attackResult.getCol());  // Get the button at the attack position
+            Button clickedButton = getButtonAt(attackResult.getRow(), attackResult.getCol());
+            Integer row = attackResult.getRow();
+            Integer col = attackResult.getCol();
             String result = attackResult.getResult();
-            System.out.println(currentPhase);
+            String sunkShip = attackResult.getSunkShipName();
+            String attacker = attackResult.getAttacker();
+
+            char rowLetter = convertRowIndexToLetter(row);
+
             if ("Hit".equals(result)) {
-                statusLabel.setText("Hit!");
+                if (sunkShip != null) {
+                    statusLabel.setText("Hit! You sunk " + sunkShip + "!");
+                    appendCommentary(attacker + " attacked (" + rowLetter + col + ") - Hit! " + sunkShip + " sunk.");
+                } else {
+                    statusLabel.setText("Hit!");
+                    appendCommentary(attacker + " attacked (" + rowLetter + col + ") - Hit!");
+                }
                 clickedButton.setStyle("-fx-background-color: green;");
             } else if ("Miss".equals(result)) {
                 statusLabel.setText("Miss!");
+                appendCommentary(attacker + " attacked (" + rowLetter+ col + ") - Miss.");
                 clickedButton.setStyle("-fx-background-color: red;");
             }
+            clickedButton.setDisable(true);
         });
     }
 
+    @Override
+    public void onNotified(GameResult gameResult) {
+        Stage currentStage = (Stage) statusLabel.getScene().getWindow();
+        gameClient.getGameStateNotifier().removeObserver(this);
+        Platform.runLater(() -> {
+            try {
+                sceneController.changeScene(currentStage,"game-result.fxml");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
+        });
+    }
 
 
 
@@ -139,26 +200,64 @@ public class HelloController implements GameClient.MessageListener {
 
         // Initialize the ObservableList with Battleships
         Platform.runLater(() -> {
-            ships.addAll(
-                    new Battleship(5, "Carrier"),
-                    new Battleship(4, "Battleship"),
-                    new Battleship(3, "Cruiser"),
-                    new Battleship(3, "Submarine"),
-                    new Battleship(2, "Destroyer")
-            );
-            shipView.setItems(ships);
-            shipView.setCellFactory(param -> new ListCellBattleship());
-            addSelectionListenerToShipView();
+            //ships.addAll(
+                    //new Battleship(5, "Carrier"),
+                    //new Battleship(4, "Battleship"),
+                    //new Battleship(3, "Cruiser"),
+                    //new Battleship(3, "Submarine"),
+                    //new Battleship(2, "Destroyer")
+            //);
+            //shipView.setItems(ships);
+            //shipView.setCellFactory(param -> new ListCellBattleship());
+            //addSelectionListenerToShipView();
             drawBoard();
-            currentPhase = GamePhase.PREPARATION;
+            currentPhase = WAITING;
             setPhase(currentPhase);
             // Set gameClient to the instance from HelloApplication
             gameClient = HelloApplication.gameClient;
-            gameClient.setMessageListener(this);
+            gameClient.getGameStateNotifier().addObserver(this);
+            //startPlacementTimer(10);
+            gameClient.sendData("READY_FOR_BATTLE");
+            System.out.println("Ready for battle signal sent.");
+            });
 
             System.out.println(gameClient!=null);
+    }
+    @FXML
+    private void showGameOverAlert(String winner) {
+        // Create the alert with a game-over message
+        Stage currentStage = (Stage) statusLabel.getScene().getWindow();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Game Over");
+        alert.setHeaderText("Game Over");
+        alert.setContentText(winner);
+
+        // Add the "Play Again" and "Exit" buttons
+        ButtonType playAgainButton = new ButtonType("Play Again");
+        ButtonType exitButton = new ButtonType("Exit");
+
+        alert.getButtonTypes().setAll(playAgainButton, exitButton);
+
+        // Show the alert and wait for a response
+        alert.showAndWait().ifPresent(response -> {
+            if (response == playAgainButton) {
+                // Call changeScene with the passed event and the desired scene name
+                try {
+                    setPhase(WAITING);
+                    gameClient.sendData("PLAY_AGAIN");
+                    gameClient.getGameStateNotifier().removeObserver(this);
+                    sceneController.changeScene(currentStage, "waiting-room.fxml");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else if (response == exitButton) {
+                gameClient.sendData("EXIT");
+                gameClient.closeConnection();
+                Platform.exit();
+            }
         });
     }
+
     @FXML
     private void handlePlacementClick(ActionEvent event){
         System.out.println("Cell clicked!");
@@ -208,7 +307,6 @@ public class HelloController implements GameClient.MessageListener {
         if (ships.isEmpty()) {
             Platform.runLater(() -> {
                 currentPhase = GamePhase.WAITING;  // Set the game phase to WAITING
-                player1Board = playerBoard;
 
                 // Send game data to the server
                 gameClient.sendGameBoard(playerBoard);
@@ -232,19 +330,12 @@ public class HelloController implements GameClient.MessageListener {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Exit Game");
         alert.setHeaderText("Are you sure you want to exit?");
-        alert.setContentText("Your progress will be lost.");
+
 
         if (alert.showAndWait().get() == ButtonType.OK) {
-            // If the player confirms, exit the game
-            Platform.exit();  // or use System.exit(0);
+            gameClient.closeConnection();
+            Platform.exit();
         }
-    }
-
-    // Method to switch back to the Preparation phase
-    @FXML
-    private void startPreparationPhase() {
-        currentPhase = GamePhase.PREPARATION;
-        setPhase(currentPhase); // Update the UI based on the new phase
     }
     // Method to update the UI based on the current phase
     private void setPhase(GamePhase phase) {
@@ -263,8 +354,9 @@ public class HelloController implements GameClient.MessageListener {
             enemyGrid.setDisable(true); // Enable enemy grid for attacks
             playerGrid.setDisable(true);
             statusLabel.setText("Waiting for opponent");
-            resetButton.setDisable(true);
-            startButton.setDisable(true);
+            commentaryBox.setEditable(false);
+            //resetButton.setDisable(true);
+            //startButton.setDisable(true);
 
     }
 
@@ -282,11 +374,14 @@ public class HelloController implements GameClient.MessageListener {
             System.out.println("Ship Size: " + selectedShip.getSize());
         }
     }
-    private void placeShipsOnBoard(GameBoard board, Battleship[] ships) {
-        // Example: Manually place ships (you can expand this later with random placement or user input)
-        board.placeShip(ships[0], 0, 0, true);  // Place the Aircraft Carrier horizontally
-        board.placeShip(ships[1], 2, 0, true);  // Place the Battleship horizontally
-        board.placeShip(ships[2], 5, 5, false); // Place the Submarine vertically
+    @FXML
+    private void placeShipsOnBoard(GameBoard board, ObservableList ships) {
+        // Example: Manually place ships (you can expand this later with random placement
+        board.placeShip((Battleship) ships.get(0), 0, 0, true);  // Place the Aircraft Carrier horizontally
+        //board.placeShip((Battleship) ships.get(1), 2, 0, true);  // Place the Battleship horizontally
+        //board.placeShip((Battleship) ships.get(2), 5, 5, false); // Place the Submarine vertically
+        //board.placeShip((Battleship) ships.get(3), 5, 5, false);
+        //board.placeShip((Battleship) ships.get(4), 8, 8, true);
     }
     private void placeShip(int row, int col, Battleship ship) {
         int shipSize = ship.getSize();
@@ -322,7 +417,7 @@ public class HelloController implements GameClient.MessageListener {
 
         // Check if the game is over (if opponent's ships are all sunk)
         if (playerBoard.isGameOver()) {
-            statusLabel.setText("Player wins");
+            statusLabel.setText("com.example.battleshipsdemo.Player wins");
         }
     }
     // Handle orientation changes when Horizontal button is selected
@@ -398,7 +493,7 @@ public class HelloController implements GameClient.MessageListener {
                     cellButton.setStyle("-fx-background-color: lightblue;");
                 } else {
                     // Empty cell
-                    cellButton.setStyle("-fx-background-color: white;");
+                    cellButton.setStyle("-fx-background-color: linear-gradient(to bottom, #ffffff, #dddddd);");
                 }
             }
         }
@@ -421,6 +516,50 @@ public class HelloController implements GameClient.MessageListener {
             // Retrieve the button from the GridPane's children list
             return (Button) playerGrid.getChildren().get(index);
         }
+    }
+    private void startTurnTimer(int countdownTime) {
+        // If a timer is already running, stop it
+        if (clientTimer != null) {
+            clientTimer.stopTimer();  // Stop the existing timer
+        }
+
+        // Create a new ClientTimer instance with the specified countdown time
+        clientTimer = new ClientTimer(countdownTime, countdownLabel, gameClient, null);
+
+        // Start the ClientTimer in a new thread
+        new Thread(clientTimer).start();
+    }
+    private void startPlacementTimer(int countdownTime){
+        if (clientTimer != null) {
+            clientTimer.stopTimer();  // Stop the existing timer
+        }
+
+        // Create a new ClientTimer instance with the specified countdown time
+        clientTimer = new ClientTimer(countdownTime, countdownLabel, gameClient, () -> {
+            placeShipsOnBoard(playerBoard, ships);
+            drawBoard();
+            gameClient.sendGameBoard(playerBoard);
+        }
+
+
+        );
+
+        // Start the ClientTimer in a new thread
+        new Thread(clientTimer).start();
+
+    }
+    private void appendCommentary(String text) {
+        Platform.runLater(() -> {
+            commentaryBox.appendText(text + "\n");
+            // Optionally, move the caret to the end to make new text visible
+            commentaryBox.positionCaret(commentaryBox.getText().length());
+        });
+    }
+    private char convertRowIndexToLetter(Integer row) {
+        if (row < 0 || row > 9) {
+            return '?'; // or throw an exception if an out-of-range value is unacceptable
+        }
+        return (char) ('A' + row);
     }
 
 
